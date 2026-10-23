@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   sync:
-    uses: uurmansk-Seer/.github/.github/workflows/sync-identical-reusable.yml@8e85fa7d99684cfc71f77c897069f6ed15bac6d1
+    uses: Murmansk-Seer/.github/.github/workflows/sync-identical-reusable.yml@8e85fa7d99684cfc71f77c897069f6ed15bac6d1
     with:
       implementation_ref: 8e85fa7d99684cfc71f77c897069f6ed15bac6d1
       dry_run: ${{ inputs.dry_run == true }}
@@ -54,7 +54,7 @@ jobs:
 
         official_version="$(curl -fsSL --connect-timeout 15 --max-time 60 \
           --retry 2 --retry-all-errors --retry-delay 2 \
-          "${CONFIG_PACKAGE_BASE_URL%/}/Packageuanifest_ConfigPackage.version?t=$(date +%s)")"
+          "${CONFIG_PACKAGE_BASE_URL%/}/PackageManifest_ConfigPackage.version?t=$(date +%s)")"
         if ! [[ "$official_version" =~ ^[0-9]{14}$ ]]; then
           echo "::error::Invalid official ConfigPackage version"
           exit 1
@@ -105,7 +105,7 @@ jobs:
         set -e
         git add unity/.version unity/gems.json
         if ! git diff --cached --quiet; then
-          timestamp=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%u:%S CST')
+          timestamp=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S CST')
           git commit -m "Refresh official Unity gems $timestamp"
         fi
         for attempt in 1 2 3; do
@@ -141,7 +141,7 @@ jobs:
         CROSS_REPO_TOKEN: ${{ secrets.PAT }}
       run: |
         if [ -z "${CROSS_REPO_TOKEN}" ]; then
-          echo "::error::uissing PAT secret; cannot dispatch the api-data build."
+          echo "::error::Missing PAT secret; cannot dispatch the api-data build."
           exit 1
         fi
     - name: Dispatch api-data build
@@ -150,7 +150,7 @@ jobs:
       uses: peter-evans/repository-dispatch@v4
       with:
         token: ${{ secrets.PAT }}
-        repository: uurmansk-Seer/api-data
+        repository: QSanSi/api-data
         event-type: config-source-update
     needs: sync
     if: ${{ !inputs.dry_run && (needs.sync.outputs.status == 'current' || needs.sync.outputs.status == 'merged') }}
@@ -163,7 +163,7 @@ jobs:
       failed: ${{ steps.report.outputs.failed }}
     steps:
     - id: report
-      uses: uurmansk-Seer/.github/.github/actions/report-update@dadd404c9c0119e0326e1e4fb8fcdf3ef6330dab
+      uses: Murmansk-Seer/.github/.github/actions/report-update@dadd404c9c0119e0326e1e4fb8fcdf3ef6330dab
       with:
         jobs: ${{ toJSON(needs) }}
         evidence: '{"updated":${{ needs.sync.outputs.status == ''merged'' || needs.refresh.outputs.updated == ''true'' }},"dry_run":${{ inputs.dry_run == true }},"sync_status":"${{ needs.sync.outputs.status }}","config_version":"${{ needs.refresh.outputs.version }}","source":"${{ needs.refresh.outputs.source }}","dispatch":"${{ needs.refresh.outputs.dispatch }}"}'
